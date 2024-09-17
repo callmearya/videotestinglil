@@ -41,7 +41,6 @@ const remoteVideo = document.getElementById('remoteVideo');
 const hangupButton = document.getElementById('hangupButton');
 
 // 1. Setup media sources
-
 webcamButton.onclick = async () => {
   localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
   remoteStream = new MediaStream();
@@ -56,6 +55,13 @@ webcamButton.onclick = async () => {
     event.streams[0].getTracks().forEach((track) => {
       remoteStream.addTrack(track);
     });
+
+    // Mute local audio when remote stream is detected
+    if (remoteStream.getAudioTracks().length > 0) {
+      localStream.getAudioTracks().forEach((track) => {
+        track.enabled = false;
+      });
+    }
   };
 
   webcamVideo.srcObject = localStream;
@@ -141,7 +147,6 @@ answerButton.onclick = async () => {
 
   offerCandidates.onSnapshot((snapshot) => {
     snapshot.docChanges().forEach((change) => {
-      console.log(change);
       if (change.type === 'added') {
         let data = change.doc.data();
         pc.addIceCandidate(new RTCIceCandidate(data));
